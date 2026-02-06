@@ -1,16 +1,16 @@
 name: Deploy to Azure Web App
 
 on:
-  # push:
-  #   branches: [ main ]
+  push:
+    branches: [ main ]
   workflow_dispatch:
 
 env:
-  AZURE_WEBAPP_NAME: your-app-name
+  AZURE_WEBAPP_NAME: restraurent-demo
   DOTNET_VERSION: '8.0.x'
 
 jobs:
-  build-and-deploy:
+  build:
     runs-on: ubuntu-latest
     
     steps:
@@ -29,6 +29,26 @@ jobs:
     
     - name: Publish
       run: dotnet publish --configuration Release --no-build --output ./publish
+    
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: dotnet-app
+        path: ./publish
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    environment:
+      name: production
+      url: https://restraurent-demo-fca3bwdbfwfxeshu.canadacentral-01.azurewebsites.net
+    
+    steps:
+    - name: Download artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: dotnet-app
+        path: ./publish
     
     - name: Deploy to Azure Web App
       uses: azure/webapps-deploy@v2
